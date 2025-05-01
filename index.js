@@ -129,7 +129,7 @@ sequelize
     process.exit(1);
   });
 
-// 🚀 Запуск сервера (без хоста — для Render!)
+// 🚀 Запуск сервера (без вказаного IP)
 app.listen(port, () => {
   console.log(`[SERVER] Сервер запущено на порті ${port}`);
 });
