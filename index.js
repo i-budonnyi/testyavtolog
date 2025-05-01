@@ -1,4 +1,4 @@
-﻿const express = require("express");
+const express = require("express");
 const cors = require("cors");
 const fs = require("fs");
 const path = require("path");
@@ -9,16 +9,16 @@ const UserModel = require("./models/users");
 const UserRoleModel = require("./models/UserRoles");
 
 const app = express();
-const port = process.env.PORT || 5000;
-const host = "localhost"; // ✅ запустить сервер лише на localhost
+const port = process.env.PORT || 10000;
 const JWT_SECRET = process.env.JWT_SECRET || "your_secret_key";
 
-// ✅ CORS: дозволяємо localhost, Netlify та твій ngrok
+// ✅ CORS: дозволені джерела
 app.use(cors({
   origin: [
     "http://localhost:8080",
     "https://serene-fairy-1a0577.netlify.app",
-    "https://nearby-walrus-crucial.ngrok-free.app"
+    "https://nearby-walrus-crucial.ngrok-free.app",
+    "https://testyavtolog.onrender.com"
   ],
   methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization"]
@@ -30,46 +30,37 @@ app.use((req, res, next) => {
   next();
 });
 
-// Логування запитів
+// 🔍 Логування запитів
 app.use((req, res, next) => {
   const log = `[${new Date().toISOString()}] Method: ${req.method}, URL: ${req.url}, IP: ${req.ip}`;
   console.log(log);
-
   fs.appendFile("server.log", log + "\n", (err) => {
     if (err) console.error("Error writing log:", err.message);
   });
-
   next();
 });
 
-// Middleware для перевірки токена
+// 🔐 Middleware для перевірки токена
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers.authorization;
   const token = authHeader && authHeader.split(" ")[1];
 
-  if (!token) {
-    return res.status(401).json({ message: "Access token required" });
-  }
+  if (!token) return res.status(401).json({ message: "Access token required" });
 
   jwt.verify(token, JWT_SECRET, (err, user) => {
-    if (err) {
-      return res.status(403).json({ message: "Invalid token" });
-    }
+    if (err) return res.status(403).json({ message: "Invalid token" });
     req.user = user;
     next();
   });
 };
 
-// Контролер для отримання профілю користувача
+// 🧑‍💼 Контролер для профілю користувача
 const getUserProfile = async (req, res) => {
   const userId = req.user.id;
 
   try {
     const user = await UserModel.findByPk(userId);
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
+    if (!user) return res.status(404).json({ message: "User not found" });
 
     const userRole = await UserRoleModel.findOne({ where: { user_id: userId } });
 
@@ -88,10 +79,10 @@ const getUserProfile = async (req, res) => {
   }
 };
 
-// Маршрут для отримання профілю користувача
+// 📌 Маршрут профілю
 app.get("/api/profile", authenticateToken, getUserProfile);
 
-// ✅ Автоматичне підключення всіх роутів з папки routes
+// 🧭 Автоматичне підключення всіх роутів
 const routesPath = path.join(__dirname, "routes");
 fs.readdirSync(routesPath).forEach((file) => {
   if (file.endsWith(".js")) {
@@ -112,7 +103,7 @@ fs.readdirSync(routesPath).forEach((file) => {
   }
 });
 
-// Логування відповіді
+// 🟢 Логування відповіді
 app.use((req, res, next) => {
   const originalSend = res.send;
   res.send = function (body) {
@@ -129,7 +120,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// Підключення до бази даних
+// 🛢 Підключення до БД
 sequelize
   .sync()
   .then(() => console.log(`[DATABASE] Синхронізація бази даних успішна`))
@@ -138,7 +129,7 @@ sequelize
     process.exit(1);
   });
 
-// Запуск сервера
-app.listen(port, host, () => {
-  console.log(`[SERVER] Сервер запущено на http://${host}:${port}`);
+// 🚀 Запуск сервера (без хоста — для Render!)
+app.listen(port, () => {
+  console.log(`[SERVER] Сервер запущено на порті ${port}`);
 });

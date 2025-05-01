@@ -1,18 +1,22 @@
-﻿require('dotenv').config();
+require("dotenv").config();
+const { Sequelize } = require("sequelize");
 
-module.exports = {
-  development: {
-    username: process.env.DB_USER || 'postgres',
-    password: process.env.DB_PASSWORD || 'Pmzpolska2024',
-    database: process.env.DB_NAME || 'avtologistika',
-    host: process.env.DB_HOST || '192.168.0.116',
-    dialect: 'postgres',
-  },
-  production: {
-    username: process.env.DB_USER || 'postgres',
-    password: process.env.DB_PASSWORD || 'Pmzpolska2024',
-    database: process.env.DB_NAME || 'avtologistika',
-    host: process.env.DB_HOST || '192.168.0.116',
-    dialect: 'postgres',
-  },
-};
+const sequelize = new Sequelize(
+  process.env.PG_DATABASE,           // Назва бази даних
+  process.env.PG_USER,               // Користувач
+  process.env.PG_PASSWORD,           // Пароль
+  {
+    host: process.env.PG_HOST,       // Хост Render (наприклад, dpg-....frankfurt-postgres.render.com)
+    port: Number(process.env.PG_PORT) || 5432,
+    dialect: "postgres",
+    logging: false,
+    dialectOptions: {
+      ssl: {
+        require: true,
+        rejectUnauthorized: false,
+      },
+    },
+  }
+);
+
+module.exports = sequelize;

@@ -1,25 +1,32 @@
 require("dotenv").config();
 const { Sequelize } = require("sequelize");
 
-// Параметри підключення
 const sequelize = new Sequelize(
-  process.env.DB_NAME || "avtologistika", // Назва бази даних
-  process.env.DB_USER || "postgres",      // Ім'я користувача
-  process.env.DB_PASSWORD || "Pmzpolska2024", // Пароль
+  process.env.PG_DATABASE,         // вњ… РќР°Р·РІР° Р±Р°Р·Рё РґР°РЅРёС…
+  process.env.PG_USER,             // вњ… РљРѕСЂРёСЃС‚СѓРІР°С‡ Р‘Р”
+  process.env.PG_PASSWORD,         // вњ… РџР°СЂРѕР»СЊ
   {
-    host: process.env.DB_HOST || "192.168.0.116", // Хост
-    dialect: "postgres", // Використовуємо PostgreSQL
-    logging: false, // Вимикаємо логи SQL-запитів (опціонально)
+    host: process.env.PG_HOST,     // вњ… РҐРѕСЃС‚ Р· .env (РЅР°РїСЂРёРєР»Р°Рґ: dpg-...frankfurt-postgres.render.com)
+    port: Number(process.env.PG_PORT) || 5432,
+    dialect: "postgres",
+    logging: false,
+    dialectOptions: {
+      ssl: {
+        require: true,
+        rejectUnauthorized: false,
+      },
+    },
   }
 );
 
-// Перевірка підключення
+// вњ… РџРµСЂРµРІС–СЂРєР° РїС–РґРєР»СЋС‡РµРЅРЅСЏ
 sequelize.authenticate()
   .then(() => {
-    console.log("Database connection has been established successfully.");
+    console.log("вњ… Database connection has been established successfully.");
   })
   .catch((error) => {
-    console.error("Unable to connect to the database:", error.message);
+    console.error("вќЊ Unable to connect to the database:", error.message);
+    process.exit(1); // Р’РёР№С‚Рё Р· РїСЂРѕС†РµСЃСѓ РїСЂРё С„РµР№Р»С–
   });
 
 module.exports = sequelize;
