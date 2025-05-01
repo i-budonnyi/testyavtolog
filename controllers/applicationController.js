@@ -1,19 +1,19 @@
 ﻿const { QueryTypes } = require("sequelize");
 const sequelize = require("../config/database");
-const jwt = require("jsonwebtoken");
 
-// Створення заявки
+// Створення заявки (спрощена)
 const createApplication = async (req, res) => {
   try {
-    const { user_id, title, content, idea_id, type } = req.body;
+    const {
+      user_id = null,
+      title,
+      content,
+      idea_id = null,
+      type = "idea"
+    } = req.body;
 
-    if (!user_id || !title || !content || !idea_id || !type) {
-      return res.status(400).json({ message: "Не всі необхідні дані заповнені!" });
-    }
-
-    const allowedTypes = ["idea", "problem"];
-    if (!allowedTypes.includes(type)) {
-      return res.status(400).json({ message: "Неправильний тип заявки!" });
+    if (!title || !content) {
+      return res.status(400).json({ message: "Потрібно заповнити заголовок і зміст заявки" });
     }
 
     const [newApplication] = await sequelize.query(
@@ -32,7 +32,7 @@ const createApplication = async (req, res) => {
   }
 };
 
-// Отримання всіх заявок разом з ім'ям і прізвищем автора
+// Отримання всіх заявок
 const getAllApplications = async (req, res) => {
   try {
     const applications = await sequelize.query(
@@ -110,10 +110,13 @@ const deleteApplication = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const deleted = await sequelize.query("DELETE FROM applications WHERE id = :id RETURNING *", {
-      replacements: { id },
-      type: QueryTypes.DELETE,
-    });
+    const deleted = await sequelize.query(
+      "DELETE FROM applications WHERE id = :id RETURNING *",
+      {
+        replacements: { id },
+        type: QueryTypes.DELETE,
+      }
+    );
 
     if (!deleted) {
       return res.status(404).json({ message: "Заявка не знайдена" });
@@ -167,7 +170,7 @@ const updateApplicationByJury = async (req, res) => {
   }
 };
 
-// Експорт контролера
+// Експорт
 module.exports = {
   createApplication,
   getAllApplications,
