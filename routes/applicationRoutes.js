@@ -1,15 +1,24 @@
-﻿// routes/applicationRoutes.js
 const express = require("express");
 const router = express.Router();
 const applicationController = require("../controllers/applicationController");
+// const authMiddleware = require("../middleware/authMiddleware"); // 🔒 Видалено
 
-// Створення заявки
+// ✅ Створення нової заявки
 router.post("/", applicationController.createApplication);
 
-// Отримання заявок для амбасадора
-router.get("/", applicationController.getApplicationsForAmbassador);
+// ✅ Отримання всіх заявок
+router.get("/", applicationController.getAllApplications);
 
-// Оновлення заявки
+// ✅ Отримання конкретної заявки за ID
+router.get("/:id", applicationController.getApplicationById);
+
+// ✅ Оновлення заявки
 router.put("/:id", applicationController.updateApplication);
+
+// ✅ Оновлення заявки з рішенням журі
+router.put("/:id/jury", applicationController.updateApplicationByJury);
+
+// ✅ Видалення заявки
+router.delete("/:id", applicationController.deleteApplication);
 
 module.exports = router;

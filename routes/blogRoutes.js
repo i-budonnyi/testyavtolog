@@ -1,4 +1,4 @@
-﻿const express = require("express");
+const express = require("express");
 const router = express.Router();
 const path = require("path");
 const fs = require("fs");
@@ -21,7 +21,7 @@ console.log("\n[ROUTES] 🔍 Перевірка імпорту blogController:",
 
 // ✅ Отримуємо контролери
 const {
-    authenticateUser,
+    // authenticateUser, ⬅️ ВИДАЛЕНО
     getAllEntries,
     createBlogEntry,
     deleteBlogEntry
@@ -29,7 +29,6 @@ const {
 
 // ❌ Якщо якась функція `undefined`, зупиняємо сервер
 if (
-    typeof authenticateUser !== "function" ||
     typeof getAllEntries !== "function" ||
     typeof createBlogEntry !== "function" ||
     typeof deleteBlogEntry !== "function"
@@ -40,10 +39,10 @@ if (
     process.exit(1);
 }
 
-// 🔥 Підключаємо маршрути
-router.get("/entries", authenticateUser, getAllEntries);
-router.post("/create", authenticateUser, createBlogEntry);
-router.delete("/delete/:entryId", authenticateUser, deleteBlogEntry);
+// 🔥 Підключаємо маршрути (без авторизації)
+router.get("/entries", getAllEntries);
+router.post("/create", createBlogEntry);
+router.delete("/delete/:entryId", deleteBlogEntry);
 
 console.log("\n✅ [ROUTES] Маршрути blogRoutes.js успішно підключені!\n");
 

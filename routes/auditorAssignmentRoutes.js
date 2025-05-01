@@ -1,4 +1,3 @@
-﻿// routes/auditorAssignmentRoutes.js
 const express = require("express");
 const router = express.Router();
 const auditorAssignmentController = require("../controllers/auditorAssignmentController");

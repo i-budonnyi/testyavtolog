@@ -1,15 +1,13 @@
-﻿const express = require("express");
-const { getUserFromToken, logout } = require("../controllers/userController");
+const express = require("express");
+const userController = require("../controllers/userController"); // імпортуємо як об'єкт
+// const authMiddleware = require("../middleware/auth"); // ❌ Прибрано
 
 const router = express.Router();
 
-// ❗ Додаємо маршрут, який використовує фронтенд
-router.get("/user-data", getUserFromToken);
+// ✅ Профіль тепер доступний без авторизації
+router.get("/profile", userController.getUserProfile);
 
-// Старий маршрут профілю (може бути видалений, якщо не використовується)
-router.get("/profile", getUserFromToken);
-
-// Маршрут для виходу
-router.post("/logout", logout);
+// ✅ Вихід (можна лишити публічним, якщо токени не перевіряються)
+router.post("/logout", userController.logout);
 
 module.exports = router;

@@ -1,15 +1,20 @@
-﻿const express = require("express");
-const { authenticateUser, getCommentsByEntry, addComment, deleteComment } = require("../controllers/commentController");
+const express = require("express");
+const {
+  // authenticateUser, ⬅️ ВИДАЛЕНО
+  getCommentsByEntry,
+  addComment,
+  deleteComment,
+} = require("../controllers/commentController");
 
 const router = express.Router();
 
 // ✅ Отримати всі коментарі для конкретного запису (блогу або ідеї)
-router.get("/:entry_id", authenticateUser, getCommentsByEntry);
+router.get("/:entry_id", getCommentsByEntry);
 
 // ✅ Додати коментар до блогу чи ідеї
-router.post("/add", authenticateUser, addComment);
+router.post("/add", addComment);
 
 // ✅ Видалити коментар (тільки автор може видаляти свої коментарі)
-router.delete("/:id", authenticateUser, deleteComment);
+router.delete("/:id", deleteComment);
 
 module.exports = router;

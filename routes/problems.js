@@ -1,23 +1,22 @@
-﻿const express = require("express");
+const express = require("express");
 const router = express.Router();
 const problemsController = require("../controllers/problemsController");
 
-// Middleware для перевірки авторизації
-const { authenticateUser } = problemsController;
+// const { authenticateUser } = problemsController; // 🔒 Видалено перевірку авторизації
 
 // ✅ Отримати всі проблеми
-router.get("/", authenticateUser, problemsController.getAllProblems);
+router.get("/", problemsController.getAllProblems);
 
 // ✅ Отримати проблеми конкретного користувача
-router.get("/user", authenticateUser, problemsController.getUserProblems);
+router.get("/user-problems", problemsController.getUserProblems);
 
 // ✅ Створити нову проблему
-router.post("/", authenticateUser, problemsController.createProblem);
+router.post("/", problemsController.createProblem);
 
 // ✅ Видалити проблему
-router.delete("/:id", authenticateUser, problemsController.deleteProblem);
+router.delete("/:id", problemsController.deleteProblem);
 
 // ✅ Отримати всіх амбасадорів
-router.get("/ambassadors", authenticateUser, problemsController.getAllAmbassadors);
+router.get("/ambassadors", problemsController.getAllAmbassadors);
 
 module.exports = router;

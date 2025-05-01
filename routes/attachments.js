@@ -1,4 +1,4 @@
-﻿// routes/attachmentRoutes.js
+// routes/attachmentRoutes.js
 const express = require("express");
 const router = express.Router();
 const attachmentController = require("../controllers/attachmentController");
