@@ -13,19 +13,19 @@ const app = express();
 const port = process.env.PORT || 10000;
 const JWT_SECRET = process.env.JWT_SECRET || "your_secret_key";
 
-// ✅ CORS
+// ✅ Дозволені домени для CORS
 app.use(cors({
   origin: [
     "http://localhost:8080",
     "https://serene-fairy-1a0577.netlify.app",
     "https://nearby-walrus-crucial.ngrok-free.app",
+    "https://leanavtologistika.netlify.app",
     "https://testyavtolog.onrender.com"
   ],
   methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
-// ✅ JSON парсер
 app.use(express.json());
 
 // ✅ Встановлення кодування
@@ -34,17 +34,17 @@ app.use((req, res, next) => {
   next();
 });
 
-// ✅ Логування запитів
+// ✅ Логування вхідних запитів
 app.use((req, res, next) => {
   const log = `[${new Date().toISOString()}] ${req.method} ${req.url} | IP: ${req.ip}`;
   console.log(log);
   fs.appendFile("server.log", log + "\n", (err) => {
-    if (err) console.error("Error writing log:", err.message);
+    if (err) console.error("Помилка логування:", err.message);
   });
   next();
 });
 
-// ✅ Головна сторінка
+// ✅ Головна сторінка (живий API)
 app.get("/", (req, res) => {
   res.status(200).send("✅ API живий! Для доступу використовуйте /api/... маршрути.");
 });
@@ -63,7 +63,7 @@ const authenticateToken = (req, res, next) => {
   });
 };
 
-// ✅ Маршрут профілю
+// ✅ Профіль користувача
 app.get("/api/profile", authenticateToken, async (req, res) => {
   try {
     const user = await UserModel.findByPk(req.user.id);
@@ -86,7 +86,7 @@ app.get("/api/profile", authenticateToken, async (req, res) => {
   }
 });
 
-// ✅ Автоматичне підключення всіх роутів
+// ✅ Автоматичне підключення всіх роутів з папки routes
 const routesPath = path.join(__dirname, "routes");
 fs.readdirSync(routesPath).forEach((file) => {
   if (file.endsWith(".js")) {
@@ -97,7 +97,7 @@ fs.readdirSync(routesPath).forEach((file) => {
         app.use(`/api/${routeName}`, route);
         console.log(`[ROUTES] Підключено: /api/${routeName}`);
       } else {
-        console.error(`[ERROR] Файл ${file} не експортує router`);
+        console.error(`[ERROR] ${file} не експортує express.Router`);
       }
     } catch (error) {
       console.error(`[ERROR] Не вдалося підключити ${file}:`, error.message);
@@ -105,16 +105,16 @@ fs.readdirSync(routesPath).forEach((file) => {
   }
 });
 
-// ✅ Логування відповіді
+// ✅ Логування вихідної відповіді
 app.use((req, res, next) => {
   const originalSend = res.send;
   res.send = function (body) {
     console.log(`[RESPONSE] ${res.statusCode} →`, body);
     fs.appendFile(
       "server.log",
-      `[${new Date().toISOString()}] Response: ${res.statusCode}, ${JSON.stringify(body)}\n`,
+      `[${new Date().toISOString()}] RESPONSE ${res.statusCode}: ${JSON.stringify(body)}\n`,
       (err) => {
-        if (err) console.error("Error writing log:", err.message);
+        if (err) console.error("Помилка запису логу:", err.message);
       }
     );
     originalSend.apply(res, arguments);
@@ -122,15 +122,15 @@ app.use((req, res, next) => {
   next();
 });
 
-// ✅ Синхронізація бази
+// ✅ Синхронізація БД і запуск сервера
 sequelize.sync()
-  .then(() => console.log("[DATABASE] Підключення успішне"))
-  .catch((error) => {
-    console.error("[DATABASE] Помилка:", error.message);
+  .then(() => {
+    console.log("[DATABASE] Синхронізація успішна");
+    app.listen(port, () => {
+      console.log(`[SERVER] Сервер працює на порті ${port}`);
+    });
+  })
+  .catch((err) => {
+    console.error("[DATABASE] Помилка підключення:", err.message);
     process.exit(1);
   });
-
-// ✅ Запуск сервера
-app.listen(port, () => {
-  console.log(`[SERVER] Сервер запущено на порті ${port}`);
-});
