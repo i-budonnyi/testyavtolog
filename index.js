@@ -4,6 +4,7 @@ const fs = require("fs");
 const path = require("path");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
+
 const sequelize = require("./config/db");
 const UserModel = require("./models/users");
 const UserRoleModel = require("./models/UserRoles");
@@ -12,7 +13,7 @@ const app = express();
 const port = process.env.PORT || 10000;
 const JWT_SECRET = process.env.JWT_SECRET || "your_secret_key";
 
-// ✅ CORS: дозволені джерела
+// ✅ CORS
 app.use(cors({
   origin: [
     "http://localhost:8080",
@@ -24,15 +25,18 @@ app.use(cors({
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
+// ✅ JSON парсер
 app.use(express.json());
+
+// ✅ Встановлення кодування
 app.use((req, res, next) => {
   res.setHeader("Content-Type", "application/json; charset=utf-8");
   next();
 });
 
-// 🔍 Логування запитів
+// ✅ Логування запитів
 app.use((req, res, next) => {
-  const log = `[${new Date().toISOString()}] Method: ${req.method}, URL: ${req.url}, IP: ${req.ip}`;
+  const log = `[${new Date().toISOString()}] ${req.method} ${req.url} | IP: ${req.ip}`;
   console.log(log);
   fs.appendFile("server.log", log + "\n", (err) => {
     if (err) console.error("Error writing log:", err.message);
@@ -40,10 +44,15 @@ app.use((req, res, next) => {
   next();
 });
 
-// 🔐 Middleware для перевірки токена
+// ✅ Головна сторінка
+app.get("/", (req, res) => {
+  res.status(200).send("✅ API живий! Для доступу використовуйте /api/... маршрути.");
+});
+
+// ✅ Middleware авторизації
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers.authorization;
-  const token = authHeader && authHeader.split(" ")[1];
+  const token = authHeader?.split(" ")[1];
 
   if (!token) return res.status(401).json({ message: "Access token required" });
 
@@ -54,17 +63,15 @@ const authenticateToken = (req, res, next) => {
   });
 };
 
-// 🧑‍💼 Контролер для профілю користувача
-const getUserProfile = async (req, res) => {
-  const userId = req.user.id;
-
+// ✅ Маршрут профілю
+app.get("/api/profile", authenticateToken, async (req, res) => {
   try {
-    const user = await UserModel.findByPk(userId);
+    const user = await UserModel.findByPk(req.user.id);
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    const userRole = await UserRoleModel.findOne({ where: { user_id: userId } });
+    const userRole = await UserRoleModel.findOne({ where: { user_id: user.id } });
 
-    return res.status(200).json({
+    res.status(200).json({
       user: {
         id: user.id,
         firstName: user.first_name,
@@ -75,42 +82,37 @@ const getUserProfile = async (req, res) => {
       },
     });
   } catch (error) {
-    return res.status(500).json({ message: "Internal server error", error: error.message });
+    res.status(500).json({ message: "Internal server error", error: error.message });
   }
-};
+});
 
-// 📌 Маршрут профілю
-app.get("/api/profile", authenticateToken, getUserProfile);
-
-// 🧭 Автоматичне підключення всіх роутів
+// ✅ Автоматичне підключення всіх роутів
 const routesPath = path.join(__dirname, "routes");
 fs.readdirSync(routesPath).forEach((file) => {
   if (file.endsWith(".js")) {
     try {
-      const routePath = path.join(routesPath, file);
-      const route = require(routePath);
-
+      const route = require(path.join(routesPath, file));
       if (route && Object.getPrototypeOf(route) === express.Router) {
-        const routeName = file === "index.js" ? "" : file.replace(".js", "");
+        const routeName = file.replace(".js", "");
         app.use(`/api/${routeName}`, route);
-        console.log(`[ROUTES] Підключено маршрут: /api/${routeName}`);
+        console.log(`[ROUTES] Підключено: /api/${routeName}`);
       } else {
-        console.error(`[ERROR] Файл ${file} не експортує коректний маршрут`);
+        console.error(`[ERROR] Файл ${file} не експортує router`);
       }
     } catch (error) {
-      console.error(`[ERROR] Неможливо підключити маршрут ${file}:`, error.message);
+      console.error(`[ERROR] Не вдалося підключити ${file}:`, error.message);
     }
   }
 });
 
-// 🟢 Логування відповіді
+// ✅ Логування відповіді
 app.use((req, res, next) => {
   const originalSend = res.send;
   res.send = function (body) {
-    console.log(`[RESPONSE] Статус: ${res.statusCode}, Відповідь:`, body);
+    console.log(`[RESPONSE] ${res.statusCode} →`, body);
     fs.appendFile(
       "server.log",
-      `[${new Date().toISOString()}] Response Status: ${res.statusCode}, Body: ${JSON.stringify(body)}\n`,
+      `[${new Date().toISOString()}] Response: ${res.statusCode}, ${JSON.stringify(body)}\n`,
       (err) => {
         if (err) console.error("Error writing log:", err.message);
       }
@@ -120,16 +122,15 @@ app.use((req, res, next) => {
   next();
 });
 
-// 🛢 Підключення до БД
-sequelize
-  .sync()
-  .then(() => console.log(`[DATABASE] Синхронізація бази даних успішна`))
+// ✅ Синхронізація бази
+sequelize.sync()
+  .then(() => console.log("[DATABASE] Підключення успішне"))
   .catch((error) => {
-    console.error(`[DATABASE] Помилка синхронізації:`, error.message);
+    console.error("[DATABASE] Помилка:", error.message);
     process.exit(1);
   });
 
-// 🚀 Запуск сервера (без вказаного IP)
+// ✅ Запуск сервера
 app.listen(port, () => {
   console.log(`[SERVER] Сервер запущено на порті ${port}`);
 });
