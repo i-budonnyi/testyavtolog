@@ -3,49 +3,53 @@ const router = express.Router();
 const ideaController = require("../controllers/ideaController");
 
 console.log("[ideaRoutes] 📌 Ініціалізація маршрутів...");
-console.log("[ideaRoutes] 📌 Експортовані функції контролера:", ideaController);
 
-// 🔥 Перевіряємо, чи всі функції є в `ideaController`
-const { 
-    getAllIdeas, 
-    createIdea, 
-    updateIdeaStatus, 
-    getAllAmbassadors, 
-    // authenticateUser, ⬅️ ВИДАЛЕНО
-    getUserIdeas,
-    getIdeasByAmbassador 
+const {
+  getAllIdeas,
+  createIdea,
+  updateIdeaStatus,
+  getAllAmbassadors,
+  getUserIdeas,
+  getIdeasByAmbassador
 } = ideaController;
 
-if (!getAllIdeas || !createIdea || !updateIdeaStatus || !getAllAmbassadors || !getUserIdeas || !getIdeasByAmbassador) {
-    console.error("[ideaRoutes] ❌ Помилка: Одна або більше функцій не імпортовані!");
-    console.error({
-        getAllIdeas,
-        createIdea,
-        updateIdeaStatus,
-        getAllAmbassadors,
-        getUserIdeas,
-        getIdeasByAmbassador
-    });
-    throw new Error("❌ Маршрути не можуть бути підключені через відсутні функції контролера!");
+// Перевірка наявності функцій
+if (
+  !getAllIdeas ||
+  !createIdea ||
+  !updateIdeaStatus ||
+  !getAllAmbassadors ||
+  !getUserIdeas ||
+  !getIdeasByAmbassador
+) {
+  console.error("[ideaRoutes] ❌ Відсутні функції контролера:", {
+    getAllIdeas,
+    createIdea,
+    updateIdeaStatus,
+    getAllAmbassadors,
+    getUserIdeas,
+    getIdeasByAmbassador
+  });
+  throw new Error("❌ Неможливо ініціалізувати маршрути: не всі функції доступні.");
 }
 
-// ✅ Отримання всіх ідей
+// 🔹 Отримати всі ідеї
 router.get("/", getAllIdeas);
 
-// ✅ Отримання ідей конкретного користувача
+// 🔹 Отримати ідеї певного користувача
 router.get("/user-ideas", getUserIdeas);
 
-// ✅ Отримання ідей, де певного амбасадора було обрано іншими користувачами
+// 🔹 Отримати ідеї, де певного амбасадора обрано іншими
 router.get("/selected-ambassador-ideas/:ambassadorId", getIdeasByAmbassador);
 
-// ✅ Створення ідеї
+// 🔹 Створити ідею (БЕЗ авторизації)
 router.post("/", createIdea);
 
-// ✅ Оновлення статусу ідеї
+// 🔹 Оновити статус ідеї
 router.put("/:id", updateIdeaStatus);
 
-// ✅ Отримання списку амбасадорів
+// 🔹 Отримати список амбасадорів
 router.get("/ambassadors", getAllAmbassadors);
 
-console.log("[ideaRoutes] ✅ Маршрути успішно підключені.");
+console.log("[ideaRoutes] ✅ Маршрути підключені успішно.");
 module.exports = router;
