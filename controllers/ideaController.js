@@ -13,11 +13,11 @@ const getAllIdeas = async (req, res) => {
   }
 };
 
-// ✅ Створити нову ідею без авторизації (тимчасово)
+// ✅ Створити нову ідею (user_id = 38 — існуючий користувач)
 const createIdea = async (req, res) => {
   try {
     const { ambassador_id, title, description } = req.body;
-    const user_id = 1; // ❗ тимчасово жорстко вказуємо
+    const user_id = 38; // ✅ реальний user_id із таблиці users
 
     await sequelize.query(
       `INSERT INTO ideas (user_id, ambassador_id, title, description, status)
@@ -35,10 +35,10 @@ const createIdea = async (req, res) => {
   }
 };
 
-// ✅ Отримати ідеї користувача (тимчасово user_id = 1)
+// ✅ Отримати ідеї користувача (user_id = 38)
 const getUserIdeas = async (req, res) => {
   try {
-    const userId = 1; // ❗ тимчасовий user_id
+    const userId = 38;
     const ideas = await sequelize.query(
       "SELECT * FROM ideas WHERE user_id = :userId ORDER BY created_at DESC",
       {
